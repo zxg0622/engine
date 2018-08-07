@@ -917,6 +917,7 @@ _ccsg.EditBox.KeyboardReturnType = KeyboardReturnType;
         proto._showBKKeyboard = function () {
             BK.Editor.showKeyBoard(this._onBKBtnClick.bind(this), this._onBKTextChange.bind(this));
             var editBox = this._editBox;
+            BK.Editor.setText(editBox._text);
             editBox._delegate && editBox._delegate.editBoxEditingDidBegan && editBox._delegate.editBoxEditingDidBegan(editBox);
         };
     }
@@ -1049,6 +1050,9 @@ _ccsg.EditBox.KeyboardReturnType = KeyboardReturnType;
         }
         else if (inputFlag === InputFlag.INITIAL_CAPS_SENTENCE) {
             this._editBox._text = capitalizeFirstLetter(this._editBox._text);
+        }
+        if (this._edTxt) {
+            this._edTxt.value = this._editBox._text;
         }
     };
 

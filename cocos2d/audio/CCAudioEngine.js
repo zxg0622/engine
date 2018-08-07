@@ -161,9 +161,9 @@ var audioEngine = {
      */
     isLoop: function (audioID) {
         var audio = getAudioFromId(audioID);
-        if (!audio || !audio.isLoop)
+        if (!audio || !audio.getLoop)
             return false;
-        return audio.isLoop();
+        return audio.getLoop();
     },
 
     /**
@@ -327,12 +327,7 @@ var audioEngine = {
     resume: function (audioID) {
         var audio = getAudioFromId(audioID);
         if (audio) {
-            if (audio.getCurrentTime() === 0) {
-                audio.play();
-            }
-            else {
-                audio.resume();
-            }
+            audio.resume();
         }
     },
 
