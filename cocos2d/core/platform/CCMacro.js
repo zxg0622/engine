@@ -1209,7 +1209,7 @@ cc.macro = {
      * @property REPEAT_FOREVER
      * @type {Number}
      */
-    REPEAT_FOREVER: CC_JSB ? 0xffffffff : (Number.MAX_VALUE - 1),
+    REPEAT_FOREVER: (!CC_RUNTIME && CC_JSB) ? 0xffffffff : (Number.MAX_VALUE - 1),
 
     /**
      * @property FLT_EPSILON
@@ -1962,7 +1962,7 @@ cc.defineGetterSetter(cc.macro, 'ENABLE_CULLING',
         var scene = cc.director.getScene();
         if (!scene) return;
 
-        if (CC_JSB) {
+        if (!CC_RUNTIME && CC_JSB) {
             scene._sgNode.markCullingDirty();
             cc.director.setCullingEnabled(val);
         }
@@ -2015,7 +2015,7 @@ cc.lerp = function (a, b, r) {
  * @returns {Number}
  */
 cc.rand = function () {
-	return Math.random() * 0xffffff;
+      return Math.random() * 0xffffff;
 };
 
 /**
@@ -2103,7 +2103,7 @@ cc.nodeDrawSetup = function (node) {
      glDisableClientState(GL_COLOR_ARRAY);
      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
      glDisableClientState(GL_VERTEX_ARRAY);
-     */
+    */
 // };
 
 /**

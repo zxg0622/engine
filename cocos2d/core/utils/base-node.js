@@ -385,7 +385,7 @@ var BaseNode = cc.Class({
         this._onSetParent(value);
 
         if (value) {
-            if (!CC_JSB) {
+            if (CC_RUNTIME || !CC_JSB) {
                 eventManager._setDirtyForNode(this);
             }
             value._children.push(this);

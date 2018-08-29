@@ -228,7 +228,7 @@ var VideoPlayer = cc.Class({
     },
 
     onLoad: function() {
-        if(CC_JSB) {
+        if (!CC_RUNTIME && CC_JSB) {
             if (cc.sys.os === cc.sys.OS_OSX || cc.sys.os === cc.sys.OS_WINDOWS) {
                 this.enabled = false;
             }
@@ -236,7 +236,7 @@ var VideoPlayer = cc.Class({
     },
 
     _createSgNode: function () {
-        if(CC_JSB) {
+        if (!CC_RUNTIME && CC_JSB) {
             if (cc.sys.os === cc.sys.OS_OSX || cc.sys.os === cc.sys.OS_WINDOWS) {
                 console.log('VideoPlayer is not supported on Mac and Windows!');
                 return null;
@@ -257,7 +257,7 @@ var VideoPlayer = cc.Class({
     _initSgNode: function () {
         var sgNode = this._sgNode;
         if(sgNode) {
-            if(!CC_JSB) {
+            if (CC_RUNTIME || !CC_JSB) {
                 sgNode.createDomElementIfNeeded();
             }
             this._updateVideoSource();

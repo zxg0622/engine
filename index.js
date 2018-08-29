@@ -136,7 +136,9 @@ defineMacro('CC_JSB', defined('jsb'));
 defineMacro('CC_BUILD', false);
 defineMacro('CC_WECHATGAME', false);
 defineMacro('CC_QQPLAY', false);
-defineMacro('CC_SUPPORT_JIT', !(CC_WECHATGAME || CC_QQPLAY));
+defineMacro('CC_RUNTIME', typeof loadRuntime === "function");
+defineMacro('CC_SUPPORT_JIT', !(CC_WECHATGAME || CC_QQPLAY || CC_RUNTIME));
+
 
 // PREDEFINE
 
@@ -205,6 +207,10 @@ if (CC_EDITOR) {
     if (Editor.isMainProcess) {
         Editor.versions['cocos2d'] = require('./package.json').version;
     }
+}
+
+if (CC_RUNTIME) {
+    require('./jsb/jsb-loader.js');
 }
 
 module.exports = cc;

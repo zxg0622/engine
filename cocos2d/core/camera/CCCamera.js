@@ -25,7 +25,7 @@
 
 var cullingDirtyFlag;
 
-if (!CC_JSB) {
+if (CC_RUNTIME || !CC_JSB) {
     cullingDirtyFlag = _ccsg.Node._dirtyFlags.cullingDirty;
     require('./CCSGCameraNode');
 }
@@ -43,7 +43,7 @@ if (!CC_JSB) {
 let Camera = cc.Class({
     name: 'cc.Camera',
     extends: cc._RendererUnderSG,
-    
+
     ctor: function () {
         this.viewMatrix = cc.affineTransformMake();
         this.invertViewMatrix = cc.affineTransformMake();
@@ -133,7 +133,7 @@ let Camera = cc.Class({
 
         this._sgTarges.push(sgNode);
 
-        if (!CC_JSB) {
+        if (CC_RUNTIME || !CC_JSB) {
             var cmd = sgNode._renderCmd;
             cmd.setDirtyFlag(cullingDirtyFlag);
             cmd._cameraFlag = Camera.flags.InCamera;
@@ -155,10 +155,10 @@ let Camera = cc.Class({
 
         this._sgNode.removeTarget(sgNode);
         delete sgNode._cameraInfo;
-        
+
         cc.js.array.remove(this._sgTarges, sgNode);
-        
-        if (!CC_JSB) {
+
+        if (CC_RUNTIME || !CC_JSB) {
             var cmd = sgNode._renderCmd;
             cmd.setDirtyFlag(cullingDirtyFlag);
             cmd._cameraFlag = 0;
@@ -174,7 +174,7 @@ let Camera = cc.Class({
         }
 
         Camera.main = this;
-        if (CC_JSB) {
+        if (!CC_RUNTIME && CC_JSB) {
             this._sgNode.setEnable(true);
         }
 
@@ -188,9 +188,9 @@ let Camera = cc.Class({
         if (Camera.main !== this) {
             return;
         }
-        
+
         Camera.main = null;
-        if (CC_JSB) {
+        if (!CC_RUNTIME && CC_JSB) {
             this._sgNode.setEnable(false);
         }
 
@@ -308,7 +308,7 @@ let Camera = cc.Class({
     _setSgNodesCullingDirty: function () {
         let sgTarges = this._sgTarges;
         for (let i = 0; i < sgTarges.length; i++) {
-            if (CC_JSB) {
+            if (!CC_RUNTIME && CC_JSB) {
                 sgTarges[i].markCullingDirty();
             }
             else {
@@ -356,7 +356,7 @@ let Camera = cc.Class({
         let visibleRect = cc.visibleRect;
         let selfVisibleRect = this.visibleRect;
         let node = this.node;
-        
+
         let wt = node.getNodeToWorldTransformAR();
 
         let rotation = -(Math.atan2(wt.b, wt.a) + Math.atan2(-wt.c, wt.d)) * 0.5;

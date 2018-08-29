@@ -45,7 +45,7 @@ var PhysicsCollider = cc.Class({
         _sensor: false,
         _friction: 0.2,
         _restitution: 0,
-        
+
         /**
          * !#en
          * The density.
@@ -78,7 +78,7 @@ var PhysicsCollider = cc.Class({
                 return this._sensor;
             },
             set: function (value) {
-                this._sensor  = value;
+                this._sensor = value;
             }
         },
 
@@ -91,7 +91,7 @@ var PhysicsCollider = cc.Class({
          * @default 0.2
          */
         friction: {
-            tooltip: CC_DEV && 'i18n:COMPONENT.physics.physics_collider.friction',        
+            tooltip: CC_DEV && 'i18n:COMPONENT.physics.physics_collider.friction',      
             get: function () {
                 return this._friction;
             },
@@ -227,7 +227,7 @@ var PhysicsCollider = cc.Class({
             var fixture = fixtures[i];
             fixture.collider = null;
 
-            if (CC_JSB) {
+            if (!CC_RUNTIME && CC_JSB) {
                 if (cc.sys.isObjectValid(fixture)) {
                     manager._unregisterContactFixture(fixture);
                 }
@@ -239,9 +239,9 @@ var PhysicsCollider = cc.Class({
                 body.DestroyFixture(fixture);
             }
         }
-        
+
         this.body = null;
-        
+
         this._fixtures.length = 0;
         this._shapes.length = 0;
         this._inited = false;

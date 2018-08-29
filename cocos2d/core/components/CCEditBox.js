@@ -366,7 +366,7 @@ var EditBox = cc.Class({
             tooltip: CC_DEV && 'i18n:COMPONENT.editbox.stay_on_top',
             default: false,
             notify: function () {
-                if(!CC_JSB) {
+                if (CC_RUNTIME || !CC_JSB) {
                     this._sgNode.stayOnTop(this.stayOnTop);
                     this._sgNode.fontSize = this.fontSize;
                     this._sgNode.fontColor = this.fontColor;
@@ -467,7 +467,7 @@ var EditBox = cc.Class({
 
     _initSgNode: function() {
         var sgNode = this._sgNode;
-        if(!CC_JSB) {
+        if (CC_RUNTIME || !CC_JSB) {
             sgNode.createDomElementIfNeeded();
         }
 
@@ -532,7 +532,7 @@ var EditBox = cc.Class({
     },
 
     _registerEvent: function () {
-        if(!CC_JSB) {
+        if (CC_RUNTIME || !CC_JSB) {
             this.node.on(cc.Node.EventType.TOUCH_START, this._onTouchBegan, this);
             this.node.on(cc.Node.EventType.TOUCH_END, this._onTouchEnded, this);
         }
@@ -580,7 +580,7 @@ var EditBox = cc.Class({
 
 });
 
-if(CC_JSB) {
+if (!CC_RUNTIME && CC_JSB) {
     EditBox.prototype.editBoxEditingDidBegin = function (sender) {
         this.editBoxEditingDidBegan(sender);
     };

@@ -157,7 +157,7 @@ var PhysicsManager = cc.Class({
          * @default false
          */
         this.enabledAccumulator = false;
-        
+
     },
 
     pushDelayEvent: function (target, func, args) {
@@ -178,7 +178,7 @@ var PhysicsManager = cc.Class({
         if (!world || !this.enabled) return;
 
         this.emit('before-step');
-        
+
         this._steping = true;
 
         var velocityIterations = PhysicsManager.VELOCITY_ITERATIONS;
@@ -204,7 +204,7 @@ var PhysicsManager = cc.Class({
             var timeStep = 1/cc.game.config['frameRate'];
             world.Step(timeStep, velocityIterations, positionIterations);
         }
-        
+
 
         world.DrawDebugData();
 
@@ -404,7 +404,7 @@ var PhysicsManager = cc.Class({
 
         body._b2Body = world.CreateBody(bodyDef);
 
-        if (CC_JSB) {
+        if (!CC_RUNTIME && CC_JSB) {
             body._b2Body.SetUserData( node._sgNode );
         }
 
@@ -418,7 +418,7 @@ var PhysicsManager = cc.Class({
         var world = this._world;
         if (!world) return;
 
-        if (CC_JSB) {
+        if (!CC_RUNTIME && CC_JSB) {
             body._b2Body.SetUserData(null);
         }
         body._b2Body.body = null;
@@ -465,17 +465,17 @@ var PhysicsManager = cc.Class({
 
     _syncNode: function () {
         this._utils.syncNode();
-        
+
         var bodies = this._bodies;
         for (var i = 0, l = bodies.length; i < l; i++) {
             var body = bodies[i];
-            if (CC_JSB) {
+            if (!CC_RUNTIME && CC_JSB) {
                 var node = body.node;
                 node._position.x = node._sgNode.getPositionX();
                 node._position.y = node._sgNode.getPositionY();
                 node._rotationX = node._rotationY = node._sgNode.getRotation();
             }
-            
+
             if (body.type === BodyType.Animated) {
                 body.resetVelocity();
             }
@@ -506,7 +506,7 @@ var PhysicsManager = cc.Class({
         if (!c) {
             return;
         }
-        
+
         c.emit(ContactType.PRE_SOLVE);
     },
 

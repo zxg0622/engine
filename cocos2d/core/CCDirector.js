@@ -717,7 +717,7 @@ cc.Director = Class.extend(/** @lends cc.Director# */{
             var uuid = info.uuid;
             this.emit(cc.Director.EVENT_BEFORE_SCENE_LOADING, sceneName);
             this._loadingScene = sceneName;
-            if (CC_JSB && cc.runtime && uuid !== this._launchSceneUuid) {
+            if (!CC_RUNTIME && CC_JSB && cc.runtime && uuid !== this._launchSceneUuid) {
                 var self = this;
                 var groupName = cc.path.basename(info.url) + '_' + info.uuid;
                 console.log('==> start preload: ' + groupName);

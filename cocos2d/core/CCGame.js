@@ -302,25 +302,31 @@ var game = {
      * @method restart
      */
     restart: function () {
-        cc.director.once(cc.Director.EVENT_AFTER_DRAW, function () {
-            for (var id in game._persistRootNodes) {
-                game.removePersistRootNode(game._persistRootNodes[id]);
-            }
 
-            // Clear scene
-            cc.director.getScene().destroy();
-            cc.Object._deferredDestroy();
+        if (CC_JSB) {
+            cc.sys.restartVM();
+        }
+        else {
+            cc.director.once(cc.Director.EVENT_AFTER_DRAW, function () {
+                for (var id in game._persistRootNodes) {
+                    game.removePersistRootNode(game._persistRootNodes[id]);
+                }
 
-            cc.director.purgeDirector();
+                // Clear scene
+                cc.director.getScene().destroy();
+                cc.Object._deferredDestroy();
 
-            // Clean up audio
-            if (cc.audioEngine) {
-                cc.audioEngine.uncacheAll();
-            }
+                cc.director.purgeDirector();
 
-            cc.director.reset();
-            game.onStart();
-        });
+                // Clean up audio
+                if (cc.audioEngine) {
+                    cc.audioEngine.uncacheAll();
+                }
+
+                cc.director.reset();
+                game.onStart();
+            });
+        }
     },
 
     /**
@@ -659,14 +665,14 @@ var game = {
             isWeChatGame = cc.sys.platform === cc.sys.WECHAT_GAME,
             isQQPlay = cc.sys.platform === cc.sys.QQ_PLAY;
 
-        if (isWeChatGame) {
+        if (isWeChatGame || CC_RUNTIME) {
             this.container = cc.container = localContainer = document.createElement("DIV");
             this.frame = localContainer.parentNode === document.body ? document.documentElement : localContainer.parentNode;
             if (cc.sys.browserType === cc.sys.BROWSER_TYPE_WECHAT_GAME_SUB) {
                 localCanvas = wx.getSharedCanvas();
             }
             else {
-                localCanvas = canvas;
+                localCanvas = CC_RUNTIME ? window.__canvas : window.canvas;
             }
             this.canvas = cc._canvas = localCanvas;
         }
@@ -768,7 +774,7 @@ var game = {
         } else if (typeof document.webkitHidden !== 'undefined') {
             hiddenPropName = "webkitHidden";
         }
-        
+
         var hidden = false;
         
         function onHidden () {
