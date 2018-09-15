@@ -26,17 +26,4 @@
 
 'use strict';
 
-var GraphicsNode;
-if (!CC_JSB) {
-    GraphicsNode = _ccsg.GraphicsNode = require('./graphics-node');
-}
-else {
-    GraphicsNode = _ccsg.GraphicsNode = cc.GraphicsNode;
-}
-
-if (GraphicsNode) {
-    var misc = require('../utils/misc');
-    misc.propertyDefine(GraphicsNode, ['lineWidth', 'lineCap', 'lineJoin', 'miterLimit', 'strokeColor', 'fillColor'], {});
-}
-
 require('./graphics');

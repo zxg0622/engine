@@ -34,15 +34,12 @@ require('./event');
 require('./platform/CCSys');
 require('./platform/CCMacro');
 require('./load-pipeline');
-require('./textures');
 require('./CCDirector');
-require('./CCDirectorWebGL');
-require('./CCDirectorCanvas');
+require('./renderer');
 
 if (!(CC_EDITOR && Editor.isMainProcess)) {
     require('./platform/CCView');
     require('./platform/CCScreen');
     require('./CCScheduler');
     require('./event-manager');
-    require('./renderer');
 }

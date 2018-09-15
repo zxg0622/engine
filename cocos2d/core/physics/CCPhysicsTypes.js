@@ -125,6 +125,8 @@ module.exports = {
     BodyType: BodyType,
     ContactType: ContactType,
     RayCastType: RayCastType,
+    
+    DrawBits: b2.DrawFlags,
 
     PTM_RATIO: 32,
     ANGLE_TO_PHYSICS_ANGLE: -Math.PI / 180,

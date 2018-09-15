@@ -24,7 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-const RawAsset = require('./CCRawAsset');
+var RawAsset = require('./CCRawAsset');
 
 /**
  * !#en

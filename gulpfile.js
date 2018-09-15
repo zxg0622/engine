@@ -62,21 +62,33 @@ gulp.task('build-html5-preview-dev', ['build-debug-infos'], function (done) {
 gulp.task('build-html5', ['build-html5-preview', 'build-html5-dev', 'build-html5-min']);
 
 gulp.task('build-jsb-dev',  ['clean-cache', 'build-debug-infos'], function (done) {
+    var args = process.argv.slice(3); // strip task name
+    var opts = {};
+    if (args.indexOf('--native-renderer') !== -1) {
+        opts.nativeRenderer = true;
+    }
+
     Engine.buildJsb([
-        './jsb/index.js',
-    ], './bin/jsb_polyfill.dev.js', [], done);
+        './index.js',
+    ], './bin/cocos2d-jsb.js', [], opts, done);
 });
 
 gulp.task('build-jsb-min',  ['clean-cache', 'build-debug-infos'], function (done) {
+    var args = process.argv.slice(3); // strip task name
+    var opts = {};
+    if (args.indexOf('--native-renderer') !== -1) {
+        opts.nativeRenderer = true;
+    }
+    
     Engine.buildJsbMin([
-        './jsb/index.js',
-    ], './bin/jsb_polyfill.js', [], done);
+        './index.js',
+    ], './bin/cocos2d-jsb-min.js', [], opts, done);
 });
 
 gulp.task('build-jsb-preview', ['build-debug-infos'], function (done) {
     Engine.buildJsbPreview([
-        './jsb/index.js',
-    ], './bin/jsb_polyfill-for-preview.js', [], done);
+        './index.js',
+    ], './bin/cocos2d-jsb-for-preview.js', [], done);
 });
 
 gulp.task('build-jsb', ['build-jsb-preview', 'build-jsb-dev', 'build-jsb-min']);
@@ -139,7 +151,7 @@ gulp.task('clean-cache', function (done) {
 
 // fast build, only for develop
 gulp.task('build-dev', ['clean-cache', 'build-html5-preview', 'build-jsb-preview'], function (done) {
-    Del(['./bin/jsb_polyfill.js', './bin/jsb_polyfill.dev.js'], done);
+    Del(['./bin/cocos2d-jsb-min.js', './bin/cocos2d-jsb.js'], done);
 });
 
 // only build preview for html5 since it will built by editor
@@ -149,7 +161,7 @@ gulp.task('build', ['clean-cache', 'build-html5-preview', 'build-jsb']);
 gulp.task('default', ['build']);
 
 gulp.task('clean', function (done) {
-    Del(Path.join('./bin', '**/*'), done);
+    Del('./bin/**/*', done);
 });
 
 ////////////
@@ -162,8 +174,8 @@ gulp.task('watch-preview', function () {
 
 gulp.task('watch-jsb-polyfill', function () {
     Watch.jsbPolyfill([
-        './jsb/index.js',
-    ], './bin/jsb_polyfill.dev.js');
+        './index.js',
+    ], './bin/cocos2d-jsb.js');
 });
 
 gulp.task('watch-dev-files', ['watch-preview', 'watch-jsb-polyfill']);

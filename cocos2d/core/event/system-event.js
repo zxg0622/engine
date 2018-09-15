@@ -26,13 +26,7 @@
 
 var EventTarget = require('../event/event-target');
 var eventManager = require('../event-manager');
-var inputManger;
-if (CC_JSB) {
-    inputManger = cc.inputManager;
-}
-else {
-    inputManger = require('../platform/CCInputManager');
-}
+var inputManger = require('../platform/CCInputManager');;
 
 /**
  * !#en The event type supported by SystemEvent
@@ -78,7 +72,6 @@ var EventType = cc.Enum({
 
 var keyboardListener = null;
 var accelerationListener = null;
-var keyboardListenerAddFrame = 0;
 var SystemEvent = cc.Class({
     name: 'SystemEvent',
     extends: EventTarget,
@@ -107,8 +100,8 @@ var SystemEvent = cc.Class({
         inputManger.setAccelerometerInterval(interval);
     },
 
-    on: function (type, callback, target, useCapture) {
-        this._super(type, callback, target, useCapture);
+    on: function (type, callback, target) {
+        this._super(type, callback, target);
 
         // Keyboard
         if (type === EventType.KEY_DOWN || type === EventType.KEY_UP) {
@@ -117,28 +110,16 @@ var SystemEvent = cc.Class({
                     event: cc.EventListener.KEYBOARD,
                     onKeyPressed: function (keyCode, event) {
                         event.type = EventType.KEY_DOWN;
-                        if (CC_JSB) {
-                            event.keyCode = keyCode;
-                            event.isPressed = true;
-                        }
                         cc.systemEvent.dispatchEvent(event);
                     },
                     onKeyReleased: function (keyCode, event) {
                         event.type = EventType.KEY_UP;
-                        if (CC_JSB) {
-                            event.keyCode = keyCode;
-                            event.isPressed = false;
-                        }
                         cc.systemEvent.dispatchEvent(event);
                     }
                 });
             }
-            if (!eventManager.hasEventListener(cc._EventListenerKeyboard.LISTENER_ID)) {
-                var currentFrame = cc.director.getTotalFrames();
-                if (currentFrame !== keyboardListenerAddFrame) {
-                    eventManager.addListener(keyboardListener, 1);
-                    keyboardListenerAddFrame = currentFrame;
-                }
+            if (!eventManager.hasEventListener(cc.EventListener.ListenerID.KEYBOARD)) {
+                eventManager.addListener(keyboardListener, 1);
             }
         }
 
@@ -149,22 +130,19 @@ var SystemEvent = cc.Class({
                     event: cc.EventListener.ACCELERATION,
                     callback: function (acc, event) {
                         event.type = EventType.DEVICEMOTION;
-                        if (CC_JSB) {
-                            event.acc = acc;
-                        }
                         cc.systemEvent.dispatchEvent(event);
                     }
                 });
             }
-            if (!eventManager.hasEventListener(cc._EventListenerAcceleration.LISTENER_ID)) {
+            if (!eventManager.hasEventListener(cc.EventListener.ListenerID.ACCELERATION)) {
                 eventManager.addListener(accelerationListener, 1);
             }
         }
     },
 
 
-    off: function (type, callback, target, useCapture) {
-        this._super(type, callback, target, useCapture);
+    off: function (type, callback, target) {
+        this._super(type, callback, target);
 
         // Keyboard
         if (keyboardListener && (type === EventType.KEY_DOWN || type === EventType.KEY_UP)) {

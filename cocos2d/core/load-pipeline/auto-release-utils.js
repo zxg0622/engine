@@ -24,7 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var JS = require('../platform/js');
+var js = require('../platform/js');
 
 function parseDepends (key, parsed) {
     var item = cc.loader.getItem(key);
@@ -43,6 +43,10 @@ function parseDepends (key, parsed) {
 }
 
 function visitAsset (asset, excludeMap) {
+    // Skip assets generated programmatically or by user (e.g. label texture)
+    if (!asset._uuid) {
+        return;
+    }
     var key = cc.loader._getReferenceKey(asset);
     if ( !excludeMap[key] ) {
         excludeMap[key] = true;
@@ -58,7 +62,7 @@ function visitComponent (comp, excludeMap) {
             if (Array.isArray(value)) {
                 for (let j = 0; j < value.length; j++) {
                     let val = value[j];
-                    if (cc.Class.isInstanceOf(val, cc.RawAsset)) {
+                    if (val instanceof cc.RawAsset) {
                         visitAsset(val, excludeMap);
                     }
                 }
@@ -67,12 +71,12 @@ function visitComponent (comp, excludeMap) {
                 let keys = Object.getOwnPropertyNames(value);
                 for (let j = 0; j < keys.length; j++) {
                     let val = value[keys[j]];
-                    if (cc.Class.isInstanceOf(val, cc.RawAsset)) {
+                    if (val instanceof cc.RawAsset) {
                         visitAsset(val, excludeMap);
                     }
                 }
             }
-            else if (cc.Class.isInstanceOf(value, cc.RawAsset)) {
+            else if (value instanceof cc.RawAsset) {
                 visitAsset(value, excludeMap);
             }
         }
@@ -92,7 +96,7 @@ module.exports = {
     // do auto release
     autoRelease: function (oldSceneAssets, nextSceneAssets, persistNodes) {
         var releaseSettings = cc.loader._autoReleaseSetting;
-        var excludeMap = JS.createMap();
+        var excludeMap = js.createMap();
 
         // collect next scene assets
         if (nextSceneAssets) {

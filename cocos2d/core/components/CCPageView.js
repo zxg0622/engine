@@ -224,7 +224,7 @@ var PageView = cc.Class({
     },
 
     __preload: function () {
-        this.node.on('size-changed', this._updateAllPagesSize, this);
+        this.node.on(cc.Node.EventType.SIZE_CHANGED, this._updateAllPagesSize, this);
     },
 
     onEnable: function () {
@@ -249,7 +249,7 @@ var PageView = cc.Class({
     },
 
     onDestroy: function() {
-        this.node.off('size-changed', this._updateAllPagesSize, this);
+        this.node.off(cc.Node.EventType.SIZE_CHANGED, this._updateAllPagesSize, this);
     },
 
     /**
@@ -520,7 +520,7 @@ var PageView = cc.Class({
 
     // 通过 idx 获取偏移值数值
     _moveOffsetValue: function (idx) {
-        var offset = cc.p(0, 0);
+        var offset = cc.v2(0, 0);
         if (this.sizeMode === SizeMode.Free) {
             if (this.direction === Direction.Horizontal) {
                 offset.x = this._scrollCenterOffsetX[idx];
@@ -554,7 +554,7 @@ var PageView = cc.Class({
 
     _handleReleaseLogic: function(touch) {
         var bounceBackStarted = this._startBounceBackIfNeeded();
-        var moveOffset = cc.pSub(this._touchBeganPosition, this._touchEndPosition);
+        var moveOffset = this._touchBeganPosition.sub(this._touchEndPosition);
         if (bounceBackStarted) {
             var dragDirection = this._getDragDirection(moveOffset);
             if (dragDirection === 0) {
@@ -621,5 +621,5 @@ cc.PageView = module.exports = PageView;
  * 注意：此事件是从该组件所属的 Node 上面派发出来的，需要用 node.on 来监听。
  * @event page-turning
  * @param {Event.EventCustom} event
- * @param {PageView} event.detail - The PageView component.
+ * @param {PageView} pageView - The PageView component.
  */

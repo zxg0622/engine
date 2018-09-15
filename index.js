@@ -26,6 +26,9 @@
 
 // PREDEFINE
 
+// window may be undefined when first load engine from editor
+var _global = typeof window === 'undefined' ? global : window;
+
 /**
  * !#en
  * The main namespace of Cocos2d-JS, all engine core classes, functions, properties and constants are defined in this namespace.
@@ -34,31 +37,30 @@
  * @module cc
  * @main cc
  */
-cc = {};
-_ccsg = {};
+cc = _global.cc || {};
+
+// For internal usage
+_cc = _global._cc || {};
 
 // For internal usage
 _cc = {};
 
 require('./predefine');
-require('./CCDebugger');
 
 // polyfills
 require('./polyfill/string');
 require('./polyfill/misc');
 require('./polyfill/array');
+require('./polyfill/object');
 if (!(CC_EDITOR && Editor.isMainProcess)) {
     require('./polyfill/typescript');
 }
 
-require('./cocos2d/kazmath');
 require('./cocos2d/core/predefine');
 
-// LOAD ENGINE CODE
+// LOAD COCOS2D ENGINE CODE
 
 if (!(CC_EDITOR && Editor.isMainProcess)) {
-    require('./cocos2d/shaders');
-    require('./CCBoot');
     require('./cocos2d');
 }
 
@@ -68,7 +70,7 @@ require('./extends');
 
 if (CC_EDITOR) {
     if (Editor.isMainProcess) {
-        Editor.versions['cocos2d'] = require('./package.json').version;
+        Editor.versions['cocos2d'] = require('./package').version;
     }
 }
 

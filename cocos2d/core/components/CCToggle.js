@@ -130,11 +130,11 @@ var Toggle = cc.Class({
         this._super();
 
         if (this.checkMark) {
-            this.checkMark._sgNode.setState(0);
+            this.checkMark.setState(0);
         }
         if (this.enableAutoGrayEffect) {
             if (this.checkMark && !this.interactable) {
-                this.checkMark._sgNode.setState(1);
+                this.checkMark.setState(1);
             }
         }
     },
@@ -220,9 +220,9 @@ var Toggle = cc.Class({
 cc.Toggle = module.exports = Toggle;
 
 
-var JS = require('../platform/js');
+var js = require('../platform/js');
 
-JS.get(Toggle.prototype, '_toggleContainer',
+js.get(Toggle.prototype, '_toggleContainer',
     function () {
         var parent = this.node.parent;
         if (cc.Node.isNode(parent)) {
@@ -239,5 +239,5 @@ JS.get(Toggle.prototype, '_toggleContainer',
  * 注意：此事件是从该组件所属的 Node 上面派发出来的，需要用 node.on 来监听。
  * @event toggle
  * @param {Event.EventCustom} event
- * @param {Toggle} event.detail - The Toggle component.
+ * @param {Toggle} toggle - The Toggle component.
  */

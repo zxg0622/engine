@@ -24,9 +24,10 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var Path = require('../utils/CCPath');
-var Pipeline = require('./pipeline');
-var LoadingItems = require('./loading-items');
+require('../utils/CCPath');
+const debug = require('../CCDebug');
+const Pipeline = require('./pipeline');
+const LoadingItems = require('./loading-items');
 
 var ID = 'AssetLoader';
 
@@ -41,7 +42,7 @@ var reusedArray = [];
 AssetLoader.prototype.handle = function (item, callback) {
     var uuid = item.uuid;
     if (!uuid) {
-        return !!item.content ? item.content : null;
+        return item.content || null;
     }
 
     var self = this;
@@ -53,9 +54,9 @@ AssetLoader.prototype.handle = function (item, callback) {
             item.url = item.rawUrl = url;
             item.isRawAsset = isRawAsset;
             if (isRawAsset) {
-                var ext = Path.extname(url).toLowerCase();
+                var ext = cc.path.extname(url).toLowerCase();
                 if (!ext) {
-                    callback(new Error(cc._getError(4931, uuid, url)));
+                    callback(new Error(debug.getError(4931, uuid, url)));
                     return;
                 }
                 ext = ext.substr(1);

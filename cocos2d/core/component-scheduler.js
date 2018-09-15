@@ -26,7 +26,7 @@
 
 require('./platform/CCClass');
 var Flags = require('./platform/CCObject').Flags;
-var JsArray = require('./platform/js').array;
+var jsArray = require('./platform/js').array;
 
 var IsStartCalled = Flags.IsStartCalled;
 var IsOnEnableCalled = Flags.IsOnEnableCalled;
@@ -52,7 +52,7 @@ var callLateUpdate = CC_SUPPORT_JIT ? 'c.lateUpdate(dt)' : function (c, dt) {
 
 function sortedIndex (array, comp) {
     var order = comp.constructor._executionOrder;
-    var id = comp.__instanceId;
+    var id = comp._id;
     for (var l = 0, h = array.length - 1, m = h >>> 1;
          l <= h;
          m = (l + h) >>> 1
@@ -66,7 +66,7 @@ function sortedIndex (array, comp) {
             l = m + 1;
         }
         else {
-            var testId = test.__instanceId;
+            var testId = test._id;
             if (testId > id) {
                 h = m - 1;
             }
@@ -102,7 +102,7 @@ function stableRemoveInactive (iterator, flagToClear) {
 // This class contains some queues used to invoke life-cycle methods by script execution order
 var LifeCycleInvoker = cc.Class({
     __ctor__ (invokeFunc) {
-        var Iterator = JsArray.MutableForwardIterator;
+        var Iterator = jsArray.MutableForwardIterator;
         // components which priority === 0 (default)
         this._zero = new Iterator([]);
         // components which priority < 0
@@ -334,7 +334,7 @@ var ComponentScheduler = cc.Class({
         // cancel schedule task
         var index = this.scheduleInNextFrame.indexOf(comp);
         if (index >= 0) {
-            JsArray.fastRemoveAt(this.scheduleInNextFrame, index);
+            jsArray.fastRemoveAt(this.scheduleInNextFrame, index);
             return;
         }
 

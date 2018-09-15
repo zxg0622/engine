@@ -24,8 +24,10 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var AnimationAnimator = require('../../animation/animation-animator');
-var AnimationClip = require('../../animation/animation-clip');
+const AnimationAnimator = require('../../animation/animation-animator');
+const AnimationClip = require('../../animation/animation-clip');
+const EventTarget = require('../event/event-target');
+const js = require('../platform/js');
 
 function equalClips (clip1, clip2) {
     if (clip1 === clip2) {
@@ -34,6 +36,58 @@ function equalClips (clip1, clip2) {
 
     return clip1 && clip2 && (clip1.name === clip2.name || clip1._uuid === clip2._uuid);
 }
+
+/**
+ * !#en The event type supported by Animation
+ * !#zh Animation 支持的事件类型
+ * @class Animation.EventType
+ * @static
+ * @namespace Animationd
+ */
+var EventType = cc.Enum({
+    /**
+     * !#en Emit when begin playing animation
+     * !#zh 开始播放时触发
+     * @property {String} PLAY
+     * @static
+     */
+    PLAY: 'play',
+    /**
+     * !#en Emit when stop playing animation
+     * !#zh 停止播放时触发
+     * @property {String} STOP
+     * @static
+     */
+    STOP: 'stop',
+    /**
+     * !#en Emit when pause animation
+     * !#zh 暂停播放时触发
+     * @property {String} PAUSE   
+     * @static
+     */
+    PAUSE: 'pause',
+    /**
+     * !#en Emit when resume animation
+     * !#zh 恢复播放时触发
+     * @property {String} RESUME
+     * @static
+     */
+    RESUME: 'resume',
+    /**
+     * !#en If animation repeat count is larger than 1, emit when animation play to the last frame
+     * !#zh 假如动画循环次数大于 1，当动画播放到最后一帧时触发
+     * @property {String} LASTFRAME
+     * @static
+     */
+    LASTFRAME: 'lastframe',
+    /**
+     * !#en Emit when finish playing animation
+     * !#zh 动画播放完成时触发
+     * @property {String} FINISHED
+     * @static
+     */
+    FINISHED: 'finished'
+})
 
 /**
  * !#en The animation component is used to play back animations.
@@ -63,12 +117,16 @@ function equalClips (clip1, clip2) {
 var Animation = cc.Class({
     name: 'cc.Animation',
     extends: require('./CCComponent'),
-    mixins: [cc.EventTarget],
+    mixins: [EventTarget],
 
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.others/Animation',
         help: 'i18n:COMPONENT.help_url.animation',
         executeInEditMode: true,
+    },
+
+    statics: {
+        EventType
     },
 
     ctor: function () {
@@ -77,7 +135,7 @@ var Animation = cc.Class({
         // The actual implement for Animation
         this._animator = null;
 
-        this._nameToState = {};
+        this._nameToState = js.createMap(true);
         this._didInit = false;
 
         this._currentClip = null;
@@ -519,7 +577,7 @@ var Animation = cc.Class({
      * @param {String} type - A string representing the event type to listen for.
      * @param {Function} callback - The callback that will be invoked when the event is dispatched.
      *                              The callback is ignored if it is a duplicate (the callbacks are unique).
-     * @param {Event} callback.event event
+     * @param {cc.AnimationState} state 
      * @param {Object} [target] - The target (this object) to invoke the callback, can be null
      * @param {Boolean} [useCapture=false] - When set to true, the capture argument prevents callback
      *                              from being invoked when the event's eventPhase attribute value is BUBBLING_PHASE.
@@ -531,9 +589,8 @@ var Animation = cc.Class({
      * on(type: string, callback: (event: Event.EventCustom) => void, target?: any, useCapture?: boolean): (event: Event.EventCustom) => void
      * on<T>(type: string, callback: (event: T) => void, target?: any, useCapture?: boolean): (event: T) => void
      * @example
-     * onPlay: function (event) {
-     *     var state = event.detail;    // state instanceof cc.AnimationState
-     *     var type = event.type;       // type === 'play';
+     * onPlay: function (type, state) {
+     *     // callback
      * }
      * 
      * // register event to all animation
@@ -542,7 +599,7 @@ var Animation = cc.Class({
     on: function (type, callback, target, useCapture) {
         this._init();
 
-        var ret = cc.EventTarget.prototype.on.call(this, type, callback, target, useCapture);
+        var ret = this._EventTargetOn(type, callback, target, useCapture);
 
         var array = this._animator._anims.array;
         for (var i = 0; i < array.length; ++i) {
@@ -574,7 +631,7 @@ var Animation = cc.Class({
     off: function (type, callback, target, useCapture) {
         this._init();
 
-        cc.EventTarget.prototype.off.call(this, type, callback, target, useCapture);
+        this._EventTargetOff(type, callback, target, useCapture);
 
         var nameToState = this._nameToState;
         for (var name in nameToState) {
@@ -600,7 +657,7 @@ var Animation = cc.Class({
     },
 
     _createStates: function() {
-        this._nameToState = {};
+        this._nameToState = js.createMap(true);
         
         // create animation states
         var state = null;
@@ -631,5 +688,8 @@ var Animation = cc.Class({
         }
     }
 });
+
+Animation.prototype._EventTargetOn = EventTarget.prototype.on;
+Animation.prototype._EventTargetOff = EventTarget.prototype.off;
 
 cc.Animation = module.exports = Animation;

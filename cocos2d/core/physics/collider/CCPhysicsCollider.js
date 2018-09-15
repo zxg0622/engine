@@ -29,6 +29,7 @@ var getWorldScale = require('../utils').getWorldScale;
 
 /**
  * @class PhysicsCollider
+ * @extends Collider
  */
 var PhysicsCollider = cc.Class({
     name: 'cc.PhysicsCollider',
@@ -166,6 +167,7 @@ var PhysicsCollider = cc.Class({
 
         var node = body.node;
         var scale = getWorldScale(node);
+        this._scale = scale;
 
         var shapes = scale.x === 0 && scale.y === 0 ? [] : this._createShape(scale);
 
@@ -228,13 +230,7 @@ var PhysicsCollider = cc.Class({
             var fixture = fixtures[i];
             fixture.collider = null;
 
-            if (CC_JSB) {
-                if (cc.sys.isObjectValid(fixture)) {
-                    manager._unregisterContactFixture(fixture);
-                }
-            } else {
-                manager._unregisterContactFixture(fixture);
-            }
+            manager._unregisterContactFixture(fixture);
 
             if (body) {
                 body.DestroyFixture(fixture);

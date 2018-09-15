@@ -25,7 +25,7 @@
  ****************************************************************************/
 
 var CCObject = require('../platform/CCObject');
-var JS = require('../platform/js');
+var js = require('../platform/js');
 
 /**
  * !#en
@@ -60,12 +60,12 @@ cc.RawAsset = cc.Class({
  * @static
  * @private
  */
-JS.value(cc.RawAsset, 'isRawAssetType', function (ctor) {
-    return cc.isChildClassOf(ctor, cc.RawAsset) && !cc.isChildClassOf(ctor, cc.Asset);
+js.value(cc.RawAsset, 'isRawAssetType', function (ctor) {
+    return js.isChildClassOf(ctor, cc.RawAsset) && !js.isChildClassOf(ctor, cc.Asset);
 });
 
-// TODO - DELME after 2.0
-JS.value(cc.RawAsset, 'wasRawAssetType', function (ctor) {
+ // TODO - DELME after 2.1
+js.value(cc.RawAsset, 'wasRawAssetType', function (ctor) {
     return ctor === cc.Texture2D ||
            ctor === cc.AudioClip ||
            ctor === cc.ParticleAsset ||

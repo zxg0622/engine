@@ -23,26 +23,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-var eventManager = require('../event-manager');
 
-var designResolutionWrapper = {
-    getContentSize: function () {
-        // The canvas size will always the same with the screen,
-        // so its anchor should be (0.5, 0.5), otherwise its children will appear biased.
-        return CC_EDITOR ? cc.engine.getDesignResolutionSize() : cc.visibleRect;
-    },
-    setContentSize: function (size) {
-        // NYI
-    },
-
-    _getWidth: function () {
-        return this.getContentSize().width;
-    },
-
-    _getHeight: function () {
-        return this.getContentSize().height;
-    },
-};
+var Camera = require('../camera/CCCamera');
+var Component = require('./CCComponent');
 
 /**
  * !#zh: 作为 UI 根节点，为所有子节点提供视窗四边的位置信息以供对齐，另外提供屏幕适配策略接口，方便从编辑器设置。
@@ -52,7 +35,8 @@ var designResolutionWrapper = {
  * @extends Component
  */
 var Canvas = cc.Class({
-    name: 'cc.Canvas', extends: require('./CCComponent'),
+    name: 'cc.Canvas',
+    extends: Component,
 
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.ui/Canvas',
@@ -139,16 +123,7 @@ var Canvas = cc.Class({
     },
 
     ctor: function () {
-        if (CC_JSB) {
-            this._thisOnResized = cc.EventListener.create({
-                event: cc.EventListener.CUSTOM,
-                eventName: "window-resize",
-                callback: this.onResized.bind(this)
-            });
-        }
-        else {
-            this._thisOnResized = this.onResized.bind(this);
-        }
+        this._thisOnResized = this.onResized.bind(this);
     },
 
     __preload: function () {
@@ -163,60 +138,54 @@ var Canvas = cc.Class({
         }
         Canvas.instance = this;
 
-        if ( !this.node._sizeProvider ) {
-            this.node._sizeProvider = designResolutionWrapper;
-        }
-        else if (CC_DEV) {
-            var renderer = this.node.getComponent(cc._RendererUnderSG);
-            if (renderer) {
-                cc.errorID(6701, cc.js.getClassName(renderer));
-            }
-            else {
-                cc.errorID(6702);
-            }
-        }
-
-        cc.director.on(cc.Director.EVENT_BEFORE_VISIT, this.alignWithScreen, this);
+        cc.director.on(cc.Director.EVENT_AFTER_UPDATE, this.alignWithScreen, this);
 
         if (CC_EDITOR) {
             cc.engine.on('design-resolution-changed', this._thisOnResized);
         }
-        else if (!CC_JSB) {
+        else {
             if (cc.sys.isMobile) {
                 window.addEventListener('resize', this._thisOnResized);
             }
             else {
-                eventManager.addCustomListener('canvas-resize', this._thisOnResized);
+                cc.view.on('canvas-resize', this._thisOnResized);
             }
-        }
-        else {
-            eventManager.addListener(this._thisOnResized, 1);
         }
 
         this.applySettings();
         this.onResized();
+
+        // Camera could be removed in canvas render mode
+        let cameraNode = cc.find('Main Camera', this.node);
+        if (!cameraNode) {
+            cameraNode = new cc.Node('Main Camera');
+            cameraNode.parent = this.node;
+            cameraNode.setSiblingIndex(0);
+        }
+        let camera = cameraNode.getComponent(Camera);
+        if (!camera) {
+            camera = cameraNode.addComponent(Camera);
+            
+            let ClearFlags = Camera.ClearFlags;
+            camera.clearFlags = ClearFlags.COLOR | ClearFlags.DEPTH | ClearFlags.STENCIL;
+            camera.depth = -1;
+        }
+        Camera.main = camera;
     },
 
     onDestroy: function () {
-        if (this.node._sizeProvider === designResolutionWrapper) {
-            this.node._sizeProvider = null;
-        }
-
-        cc.director.off(cc.Director.EVENT_BEFORE_VISIT, this.alignWithScreen, this);
+        cc.director.off(cc.Director.EVENT_AFTER_UPDATE, this.alignWithScreen, this);
 
         if (CC_EDITOR) {
             cc.engine.off('design-resolution-changed', this._thisOnResized);
         }
-        else if (!CC_JSB) {
+        else {
             if (cc.sys.isMobile) {
                 window.removeEventListener('resize', this._thisOnResized);
             }
             else {
-                eventManager.removeCustomListeners('canvas-resize', this._thisOnResized);
+                cc.view.off('canvas-resize', this._thisOnResized);
             }
-        }
-        else {
-            eventManager.removeListener(this._thisOnResized);
         }
 
         if (Canvas.instance === this) {
@@ -227,24 +196,26 @@ var Canvas = cc.Class({
     //
 
     alignWithScreen: function () {
-        var designSize;
+        var designSize, nodeSize;
         if (CC_EDITOR) {
-            designSize = cc.engine.getDesignResolutionSize();
+            nodeSize = designSize = cc.engine.getDesignResolutionSize();
             this.node.setPosition(designSize.width * 0.5, designSize.height * 0.5);
         }
         else {
-            var canvasSize = cc.visibleRect;
+            var canvasSize = nodeSize = cc.visibleRect;
+            designSize = cc.view.getDesignResolutionSize();
             var clipTopRight = !this.fitHeight && !this.fitWidth;
             var offsetX = 0;
             var offsetY = 0;
             if (clipTopRight) {
-                designSize = cc.view.getDesignResolutionSize();
                 // offset the canvas to make it in the center of screen
                 offsetX = (designSize.width - canvasSize.width) * 0.5;
                 offsetY = (designSize.height - canvasSize.height) * 0.5;
             }
             this.node.setPosition(canvasSize.width * 0.5 + offsetX, canvasSize.height * 0.5 + offsetY);
         }
+        this.node.width = nodeSize.width;
+        this.node.height = nodeSize.height;
     },
 
     onResized: function () {

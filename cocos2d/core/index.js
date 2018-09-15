@@ -29,6 +29,7 @@ require('./assets');
 
 if (!CC_EDITOR || !Editor.isMainProcess) {
     require('./CCNode');
+    require('./CCPrivateNode');
     require('./CCScene');
 
     require('./components');
@@ -38,6 +39,8 @@ if (!CC_EDITOR || !Editor.isMainProcess) {
     require('./collider/CCIntersection');
     require('./physics');
     require('./camera/CCCamera');
+
+    require('./utils/polyfill-3d');
 }
 
 require('./base-ui/CCWidgetManager');

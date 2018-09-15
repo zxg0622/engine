@@ -24,9 +24,10 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var JS = require('../platform/js');
+const js = require('../platform/js');
+const debug = require('../CCDebug');
 require('../platform/deserialize');
-var LoadingItems = require('./loading-items');
+const LoadingItems = require('./loading-items');
 
 function isSceneObj (json) {
     var SCENE_ID = 'cc.Scene';
@@ -183,13 +184,13 @@ function loadDepends (pipeline, item, asset, depends, callback) {
 
 // can deferred load raw assets in runtime
 function canDeferredLoad (asset, item, isScene) {
-    if (CC_EDITOR || CC_JSB) {
+    if (CC_EDITOR) {
         return false;
     }
     var res = item.deferredLoadRaw;
     if (res) {
         // check if asset support deferred
-        if (cc.Class.isInstanceOf(asset, cc.Asset) && asset.constructor.preventDeferredLoadDependents) {
+        if ((asset instanceof cc.Asset) && asset.constructor.preventDeferredLoadDependents) {
             res = false;
         }
     }
@@ -217,14 +218,14 @@ function loadUuid (item, callback) {
             json = JSON.parse(item.content);
         }
         catch (e) {
-            return new Error(cc._getError(4923, item.id, e.stack));
+            return new Error(debug.getError(4923, item.id, e.stack));
         }
     }
     else if (typeof item.content === 'object') {
         json = item.content;
     }
     else {
-        return new Error(cc._getError(4924));
+        return new Error(debug.getError(4924));
     }
 
     var classFinder;
@@ -247,7 +248,7 @@ function loadUuid (item, callback) {
     }
     else {
         classFinder = function (id) {
-            var cls = JS._getClassById(id);
+            var cls = js._getClassById(id);
             if (cls) {
                 return cls;
             }
@@ -269,7 +270,7 @@ function loadUuid (item, callback) {
     catch (e) {
         cc.deserialize.Details.pool.put(tdInfo);
         var err = CC_JSB ? (e + '\n' + e.stack) : e.stack;
-        return new Error(cc._getError(4925, item.id, err));
+        return new Error(debug.getError(4925, item.id, err));
     }
 
     asset._uuid = item.uuid;

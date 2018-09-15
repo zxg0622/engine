@@ -23,15 +23,14 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var JS = cc.js;
+var js = cc.js;
 
 var AnimationManager = cc.Class({
     ctor: function () {
-        this.__instanceId = cc.ClassManager.getNewInstanceId();
-
-        this._anims = new JS.array.MutableForwardIterator([]);
-
+        this._anims = new js.array.MutableForwardIterator([]);
         this._delayEvents = [];
+
+        cc.director._scheduler && cc.director._scheduler.enableForTarget(this);
     },
 
     // for manager
@@ -47,7 +46,7 @@ var AnimationManager = cc.Class({
         }
 
         var events = this._delayEvents;
-        for (i = 0, l = events.length; i < l; i++) {
+        for (let i = 0, l = events.length; i < l; i++) {
             var event = events[i];
             event.target[event.func].apply(event.target, event.args);
         }

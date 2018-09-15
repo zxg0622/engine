@@ -24,7 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var JS = require('../platform/js');
+var js = require('../platform/js');
 var Pipeline = require('./pipeline');
 var LoadingItems = require('./loading-items');
 var AssetLoader = require('./asset-loader');
@@ -103,6 +103,14 @@ function CCLoader () {
     this.assetLoader = assetLoader;
 
     /**
+     * The md5 pipe in cc.loader's pipeline, it could be absent if the project isn't build with md5 option.
+     * It's used to modify the url to the real downloadable url with md5 suffix.
+     * @property md5Pipe
+     * @type {Object}
+     */
+    this.md5Pipe = null;
+
+    /**
      * The downloader in cc.loader's pipeline, it's by default the second pipe.
      * It's used to download files with several handlers: pure text, image, script, audio, font, uuid.
      * You can add your own download function with addDownloadHandlers
@@ -112,7 +120,7 @@ function CCLoader () {
     this.downloader = downloader;
 
     /**
-     * The downloader in cc.loader's pipeline, it's by default the third pipe.
+     * The loader in cc.loader's pipeline, it's by default the third pipe.
      * It's used to parse downloaded content with several handlers: JSON, image, plist, fnt, uuid.
      * You can add your own download function with addLoadHandlers
      * @property loader
@@ -123,19 +131,19 @@ function CCLoader () {
     this.onProgress = null;
 
     // assets to release automatically
-    this._autoReleaseSetting = {};
+    this._autoReleaseSetting = js.createMap(true);
 
     if (CC_DEBUG) {
         this._releasedAssetChecker_DEBUG = new ReleasedAssetChecker();
     }
 }
-JS.extend(CCLoader, Pipeline);
+js.extend(CCLoader, Pipeline);
 var proto = CCLoader.prototype;
 
 proto.init = function (director) {
     if (CC_DEBUG) {
         var self = this;
-        director.on(cc.Director.EVENT_BEFORE_VISIT, function () {
+        director.on(cc.Director.EVENT_AFTER_UPDATE, function () {
             self._releasedAssetChecker_DEBUG.checkCouldRelease(self._cache);
         });
     }
@@ -228,9 +236,14 @@ proto.load = function(resources, progressCallback, completeCallback) {
 
     var self = this;
     var singleRes = false;
+    var res;
     if (!(resources instanceof Array)) {
-        singleRes = true;
-        resources = resources ? [resources] : [];
+        if (resources) {
+            singleRes = true;
+            resources = [resources];
+        } else { 
+            resources = [];
+        }
     }
 
     _sharedResources.length = 0;
@@ -243,7 +256,7 @@ proto.load = function(resources, progressCallback, completeCallback) {
                 resource.url = resource.id;
             }
         }
-        var res = getResWithUrl(resource);
+        res = getResWithUrl(resource);
         if (!res.url && !res.uuid)
             continue;
         var item = this._cache[res.url];
@@ -357,7 +370,7 @@ proto._getReferenceKey = function (assetOrUrlOrUuid) {
 proto._urlNotFound = function (url, type, completeCallback) {
     callInNextTick(function () {
         url = cc.url.normalize(url);
-        var info = `${type ? JS.getClassName(type) : 'Asset'} in "resources/${url}" does not exist.`;
+        var info = `${type ? js.getClassName(type) : 'Asset'} in "resources/${url}" does not exist.`;
         if (completeCallback) {
             completeCallback(new Error(info), []);
         }
@@ -375,7 +388,7 @@ proto._urlNotFound = function (url, type, completeCallback) {
  */
 proto._parseLoadResArgs = function (type, onProgress, onComplete) {
     if (onComplete === undefined) {
-        var isValidType = cc.isChildClassOf(type, cc.RawAsset);
+        var isValidType = js.isChildClassOf(type, cc.RawAsset);
         if (onProgress) {
             onComplete = onProgress;
             if (isValidType) {
@@ -786,9 +799,10 @@ proto.release = function (asset) {
         if (item) {
             var removed = this.removeItem(id);
             asset = item.content;
-            if (cc.Class.isInstanceOf(asset, cc.Asset)) {
-                if (asset.nativeUrl) {
-                    this.release(asset.nativeUrl);  // uncache loading item of native asset
+            if (asset instanceof cc.Asset) {
+                let nativeUrl = asset.nativeUrl;
+                if (nativeUrl) {
+                    this.release(nativeUrl);  // uncache loading item of native asset
                 }
                 asset.destroy();
             }

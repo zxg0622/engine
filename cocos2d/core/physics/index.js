@@ -23,15 +23,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-
-if (!CC_JSB) {
-    window.b2 = require('../../../external/box2d/box2d');
-    if (CC_QQPLAY) {
-        // can only define global variable in this way
-        b2 = window.b2;
-    }
-}
-
+require('./box2d-adapter');
 require('./CCPhysicsManager');
 require('./CCRigidBody');
 require('./CCPhysicsContact');
@@ -52,10 +44,6 @@ require('./joint/CCWeldJoint');
 require('./joint/CCWheelJoint');
 require('./joint/CCRopeJoint');
 
-if (!CC_JSB) {
-    require('./platform/CCPhysicsDebugDraw');
-    require('./platform/CCPhysicsUtils');
-    require('./platform/CCPhysicsContactListner');
-    require('./platform/CCPhysicsAABBQueryCallback');
-    require('./platform/CCPhysicsRayCastCallback');
-}
+require('./platform/CCPhysicsContactListner');
+require('./platform/CCPhysicsAABBQueryCallback');
+require('./platform/CCPhysicsRayCastCallback');

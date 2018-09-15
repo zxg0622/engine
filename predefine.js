@@ -111,6 +111,9 @@
 /**
  * @property {Boolean} CC_QQPLAY - Running in the bricks.
  */
+/**
+ * @property {Boolean} CC_RUNTIME - Running in runtime environments.
+ */
 
 // window may be undefined when first load engine from editor
 var _global = typeof window === 'undefined' ? global : window;
@@ -132,9 +135,11 @@ defineMacro('CC_DEV', true);    // (CC_EDITOR && !CC_BUILD) || CC_PREVIEW || CC_
 defineMacro('CC_DEBUG', true);  // CC_DEV || Debug Build
 defineMacro('CC_JSB', defined('jsb'));
 defineMacro('CC_BUILD', false);
-defineMacro('CC_WECHATGAME', defined('wx') && wx.getSystemInfoSync);
+defineMacro('CC_WECHATGAME_SUB', !!(defined('wx') && wx.getSharedCanvas));
+defineMacro('CC_WECHATGAME', !!(defined('wx') && (wx.getSystemInfoSync || wx.getSharedCanvas)));
 defineMacro('CC_QQPLAY', defined('bk'));
-defineMacro('CC_SUPPORT_JIT', !(CC_WECHATGAME || CC_QQPLAY)); 
+defineMacro('CC_RUNTIME', 'function' === typeof loadRuntime);
+defineMacro('CC_SUPPORT_JIT', !(CC_WECHATGAME || CC_QQPLAY || CC_RUNTIME));
 
 //
 
@@ -156,5 +161,5 @@ if (CC_DEV) {
  * If you post a bug to forum, please attach this flag.
  * @property {String} ENGINE_VERSION
  */
-const engineVersion = '1.8.1';
+const engineVersion = '2.0.0 alpha';
 _global['CocosEngine'] = cc.ENGINE_VERSION = engineVersion;

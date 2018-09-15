@@ -156,7 +156,6 @@ cc.engine = new (cc.Class({
 Editor.log = cc.log;
 Editor.warn = cc.warn;
 Editor.error = cc.error;
-Editor.info = cc.info;
 Editor.Utils = Editor.Utils || {};
 Editor.Utils.UuidCache = {};
 
@@ -164,7 +163,7 @@ var assetDir = '../test/qunit/assets';
 
 var canvas;
 function _resetGame (w, h) {
-    if (!cc.game._prepared && !cc.game._prepareCalled) {
+    if (!cc.game._prepared) {
         if (!canvas) {
             canvas = document.createElement('canvas');
             canvas.id = 'test-canvas';
@@ -174,21 +173,21 @@ function _resetGame (w, h) {
             width: w,
             height: h,
             id: 'test-canvas',
-            debugMode: cc.DebugMode.INFO
+            debugMode: cc.debug.DebugMode.INFO
         });
-        cc.director.setDisplayStats(false);
+        cc.debug.setDisplayStats(false);
     }
     else {
         var view = cc.view;
 
-        cc._canvas.width = w * view.getDevicePixelRatio();
-        cc._canvas.height = h * view.getDevicePixelRatio();
+        cc.game.canvas.width = w * view.getDevicePixelRatio();
+        cc.game.canvas.height = h * view.getDevicePixelRatio();
 
-        cc._canvas.style.width = w;
-        cc._canvas.style.height = h;
+        cc.game.canvas.style.width = w;
+        cc.game.canvas.style.height = h;
 
         // reset container style
-        var style = cc.container.style;
+        var style = cc.game.container.style;
         style.paddingTop = "0px";
         style.paddingRight = "0px";
         style.paddingBottom = "0px";
@@ -202,14 +201,16 @@ function _resetGame (w, h) {
         style.marginBottom = "0px";
         style.marginLeft = "0px";
 
-        cc.container.style.width = w;
-        cc.container.style.height = h;
+        cc.game.container.style.width = w;
+        cc.game.container.style.height = h;
 
         var size = view.getDesignResolutionSize();
         view.setDesignResolutionSize(size.width, size.height, cc.ResolutionPolicy.SHOW_ALL);
 
-        cc._Test.eventManager.dispatchCustomEvent('canvas-resize');
+        cc.view.emit('canvas-resize');
     }
+    // Forbid render in test
+    cc.renderer.render = function () {};
     cc.director.purgeDirector();
     cc.loader.releaseAll();
 
@@ -233,7 +234,7 @@ var SetupEngine = {
 
         cc.game.pause();
         // check error
-        cc._Test.SceneGraphUtils.checkMatchCurrentScene();
+        // cc._Test.SceneGraphUtils.checkMatchCurrentScene();
     }
 };
 

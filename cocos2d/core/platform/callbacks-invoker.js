@@ -24,8 +24,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-const JS = require('./js');
-const fastRemoveAt = JS.array.fastRemoveAt;
+const js = require('./js');
+const fastRemoveAt = js.array.fastRemoveAt;
 
 function CallbackList () {
     this.callbacks = [];
@@ -69,7 +69,7 @@ proto.purgeCanceled = function () {
 
 
 const MAX_SIZE = 16;
-const callbackListPool = new JS.Pool(function (list) {
+const callbackListPool = new js.Pool(function (list) {
     list.callbacks.length = 0;
     list.targets.length = 0;
     list.isInvoking = false;
@@ -87,7 +87,7 @@ callbackListPool.get = function () {
  * @private
  */
 function CallbacksHandler () {
-    this._callbackTable = JS.createMap(true);
+    this._callbackTable = js.createMap(true);
 }
 proto = CallbacksHandler.prototype;
 
@@ -109,13 +109,13 @@ proto.add = function (key, callback, target) {
 /**
  * Check if the specified key has any registered callback. If a callback is also specified,
  * it will only return true if the callback is registered.
- * @method has
+ * @method hasEventListener
  * @param {String} key
  * @param {Function} [callback]
  * @param {Object} [target]
  * @return {Boolean}
  */
-proto.has = function (key, callback, target) {
+proto.hasEventListener = function (key, callback, target) {
     var list = this._callbackTable[key];
     if (!list) {
         return false;
@@ -124,12 +124,18 @@ proto.has = function (key, callback, target) {
     // check any valid callback
     var callbacks = list.callbacks;
     if (!callback) {
-        for (let i = 0; i < callbacks.length; i++) {
-            if (callbacks[i]) {
-                return true;
+        // Make sure no cancelled callbacks
+        if (list.isInvoking) {
+            for (let i = 0; i < callbacks.length; i++) {
+                if (callbacks[i]) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
+        else {
+            return callbacks.length > 0;
+        }
     }
 
     target = target || null;
@@ -218,7 +224,7 @@ proto.remove = function (key, callback, target) {
 var CallbacksInvoker = function () {
     CallbacksHandler.call(this);
 };
-JS.extend(CallbacksInvoker, CallbacksHandler);
+js.extend(CallbacksInvoker, CallbacksHandler);
 
 if (CC_TEST) {
     cc._Test.CallbacksInvoker = CallbacksInvoker;

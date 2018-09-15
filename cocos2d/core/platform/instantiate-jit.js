@@ -30,11 +30,10 @@ var CCObject = require('./CCObject');
 var Destroyed = CCObject.Flags.Destroyed;
 var PersistentMask = CCObject.Flags.PersistentMask;
 var Attr = require('./attribute');
-var JS = require('./js');
+var js = require('./js');
 var CCClass = require('./CCClass');
 var Compiler = require('./compiler');
 
-var SERIALIZABLE = Attr.DELIMETER + 'serializable';
 var DEFAULT = Attr.DELIMETER + 'default';
 var IDENTIFIER_RE = CCClass.IDENTIFIER_RE;
 var escapeForJS = CCClass.escapeForJS;
@@ -130,7 +129,7 @@ Assignments.prototype.writeCode = function (codeArray) {
     }
 };
 
-Assignments.pool = new JS.Pool(function (obj) {
+Assignments.pool = new js.Pool(function (obj) {
                                 obj._exps.length = 0;
                                 obj._targetExp = null;
                             }, 1);
@@ -162,7 +161,7 @@ function equalsToDefault (def, value) {
             (def.constructor === Object && value.constructor === Object)
         ) {
             try {
-                return JSON.stringify(def) === JSON.stringify(value);
+                return Array.isArray(def) && Array.isArray(value) && def.length === 0 && value.length === 0;
             }
             catch (e) {
             }
@@ -199,8 +198,8 @@ function Parser (obj, parent) {
     this.objs = [];
     this.funcs = [];
 
-    this.funcModuleCache = JS.createMap();
-    JS.mixin(this.funcModuleCache, DEFAULT_MODULE_CACHE);
+    this.funcModuleCache = js.createMap();
+    js.mixin(this.funcModuleCache, DEFAULT_MODULE_CACHE);
 
     // {String[]} - variable names for circular references,
     //              not really global, just local variables shared between sub functions
@@ -254,7 +253,7 @@ function Parser (obj, parent) {
 var proto = Parser.prototype;
 
 proto.getFuncModule = function (func, usedInNew) {
-    var clsName = JS.getClassName(func);
+    var clsName = js.getClassName(func);
     if (clsName) {
         var cache = this.funcModuleCache[clsName];
         if (cache) {
@@ -317,32 +316,25 @@ proto.setValueType = function (codeArray, defaultValue, srcValue, targetExpressi
 };
 
 proto.enumerateCCClass = function (codeArray, obj, klass) {
-    var props = klass.__props__;
+    var props = klass.__values__;
     var attrs = Attr.getClassAttrs(klass);
     for (var p = 0; p < props.length; p++) {
         var key = props[p];
-        if ((CC_EDITOR || CC_TEST) && key === '_id') {
-            if (obj instanceof cc._BaseNode || obj instanceof cc.Component) {
+        var val = obj[key];
+        var defaultValue = attrs[key + DEFAULT];
+        if (equalsToDefault(defaultValue, val)) {
+            continue;
+        }
+        if (typeof val === 'object' && val instanceof cc.ValueType) {
+            defaultValue = CCClass.getDefault(defaultValue);
+            if (defaultValue && defaultValue.constructor === val.constructor) {
+                // fast case
+                var targetExpression = LOCAL_OBJ + getPropAccessor(key);
+                this.setValueType(codeArray, defaultValue, val, targetExpression);
                 continue;
             }
         }
-        if (attrs[key + SERIALIZABLE] !== false) {
-            var val = obj[key];
-            var defaultValue = attrs[key + DEFAULT];
-            if (equalsToDefault(defaultValue, val)) {
-                continue;
-            }
-            if (typeof val === 'object' && val instanceof cc.ValueType) {
-                var defaultValue = CCClass.getDefault(defaultValue);
-                if ((defaultValue && defaultValue.constructor) === val.constructor) {
-                    // fast case
-                    var targetExpression = LOCAL_OBJ + getPropAccessor(key);
-                    this.setValueType(codeArray, defaultValue, val, targetExpression);
-                    continue;
-                }
-            }
-            this.setObjProp(codeArray, obj, key, val);
-        }
+        this.setObjProp(codeArray, obj, key, val);
     }
 };
 
@@ -405,7 +397,7 @@ proto.enumerateField = function (obj, key, value) {
         return escapeForJS(value);
     }
     else {
-        if (key === '_objFlags' && cc.Class.isInstanceOf(obj, CCObject)) {
+        if (key === '_objFlags' && (obj instanceof CCObject)) {
             value &= PersistentMask;
         }
         return value;
@@ -446,7 +438,7 @@ proto.instantiateObj = function (obj) {
     if (obj instanceof cc.ValueType) {
         return CCClass.getNewValueTypeCode(obj);
     }
-    if (cc.Class.isInstanceOf(obj, cc.Asset)) {
+    if (obj instanceof cc.Asset) {
         // register to asset list and just return the reference.
         return this.getObjRef(obj);
     }

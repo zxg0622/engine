@@ -1,5 +1,4 @@
 /****************************************************************************
- Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
  http://www.cocos.com
@@ -23,16 +22,16 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-var JS = require('../platform/js');
-var sys = require('../platform/CCSys');
-var Path = require('../utils/CCPath');
-var misc = require('../utils/misc');
-var Pipeline = require('./pipeline');
-var PackDownloader = require('./pack-downloader');
-// var downloadBinary = require('./binary-downloader');
-var downloadText = require('./text-downloader');
 
-var urlAppendTimestamp = require('./utils').urlAppendTimestamp;
+const js = require('../platform/js');
+const debug = require('../CCDebug');
+require('../utils/CCPath');
+const Pipeline = require('./pipeline');
+const PackDownloader = require('./pack-downloader');
+
+let downloadBinary = require('./binary-downloader');
+let downloadText = require('./text-downloader');
+let urlAppendTimestamp = require('./utils').urlAppendTimestamp;
 
 var downloadAudio;
 if (!CC_EDITOR || !Editor.isMainProcess) {
@@ -42,13 +41,11 @@ else {
     downloadAudio = null;
 }
 
-function downloadScript (item, callback, isAsync) {
-    if (sys.platform === sys.WECHAT_GAME) {
-        require(item.url);
-        callback(null, item.url);
-        return;
-    }
+function skip () {
+    return null;
+}
 
+function downloadScript (item, callback, isAsync) {
     var url = item.url,
         d = document,
         s = document.createElement('script');
@@ -64,7 +61,7 @@ function downloadScript (item, callback, isAsync) {
         s.parentNode.removeChild(s);
         s.removeEventListener('load', loadHandler, false);
         s.removeEventListener('error', errorHandler, false);
-        callback(new Error(cc._getError(4928, url)));
+        callback(new Error(debug.getError(4928, url)));
     }
     s.addEventListener('load', loadHandler, false);
     s.addEventListener('error', errorHandler, false);
@@ -73,7 +70,7 @@ function downloadScript (item, callback, isAsync) {
 
 function downloadWebp (item, callback, isCrossOrigin, img) {
     if (!cc.sys.capabilities.webp) {
-        return new Error(cc._getError(4929, item.url));
+        return new Error(debug.getError(4929, item.url));
     }
     return downloadImage(item, callback, isCrossOrigin, img);
 }
@@ -84,7 +81,7 @@ function downloadImage (item, callback, isCrossOrigin, img) {
     }
 
     var url = urlAppendTimestamp(item.url);
-    img = img || misc.imagePool.get();
+    img = img || new Image();
     if (isCrossOrigin && window.location.protocol !== 'file:') {
         img.crossOrigin = 'anonymous';
     }
@@ -100,6 +97,7 @@ function downloadImage (item, callback, isCrossOrigin, img) {
             img.removeEventListener('load', loadCallback);
             img.removeEventListener('error', errorCallback);
 
+            img.id = item.id;
             callback(null, img);
         }
         function errorCallback () {
@@ -112,82 +110,13 @@ function downloadImage (item, callback, isCrossOrigin, img) {
                 downloadImage(item, callback, false, img);
             }
             else {
-                callback(new Error(cc._getError(4930, url)));
+                callback(new Error(debug.getError(4930, url)));
             }
         }
 
         img.addEventListener('load', loadCallback);
         img.addEventListener('error', errorCallback);
         img.src = url;
-    }
-}
-
-var FONT_TYPE = {
-    '.eot' : 'embedded-opentype',
-    '.ttf' : 'truetype',
-    '.ttc' : 'truetype',
-    '.woff' : 'woff',
-    '.svg' : 'svg'
-};
-function _loadFont (name, srcs, type){
-    var doc = document,
-        fontStyle = document.createElement('style');
-    fontStyle.type = 'text/css';
-    doc.body.appendChild(fontStyle);
-
-    var fontStr = '';
-    if (isNaN(name - 0)) {
-        fontStr += '@font-face { font-family:' + name + '; src:';
-    }
-    else {
-        fontStr += '@font-face { font-family:\'' + name + '\'; src:';
-    }
-    if (srcs instanceof Array) {
-        for (var i = 0, li = srcs.length; i < li; i++) {
-            var src = srcs[i];
-            type = Path.extname(src).toLowerCase();
-            fontStr += 'url(\'' + srcs[i] + '\') format(\'' + FONT_TYPE[type] + '\')';
-            fontStr += (i === li - 1) ? ';' : ',';
-        }
-    } else {
-        type = type.toLowerCase();
-        fontStr += 'url(\'' + srcs + '\') format(\'' + FONT_TYPE[type] + '\');';
-    }
-    fontStyle.textContent += fontStr + '}';
-
-    //<div style="font-family: PressStart;">.</div>
-    var preloadDiv = document.createElement('div');
-    var _divStyle =  preloadDiv.style;
-    _divStyle.fontFamily = name;
-    preloadDiv.innerHTML = '.';
-    _divStyle.position = 'absolute';
-    _divStyle.left = '-100px';
-    _divStyle.top = '-100px';
-    doc.body.appendChild(preloadDiv);
-}
-function downloadFont (item, callback) {
-    var url = item.url,
-        type = item.type,
-        name = item.name,
-        srcs = item.srcs;
-    if (name && srcs) {
-        if (srcs.indexOf(url) === -1) {
-            srcs.push(url);
-        }
-        _loadFont(name, srcs);
-    } else {
-        type = Path.extname(url);
-        name = Path.basename(url, type);
-        _loadFont(name, url, type);
-    }
-    if (document.fonts) {
-        document.fonts.load('1em ' + name).then(function () {
-            callback(null, null);
-        }, function(err){
-            callback(err);
-        });
-    } else {
-        return null;
     }
 }
 
@@ -238,15 +167,18 @@ var defaultMap = {
     'fnt' : downloadText,
 
     // Font
-    'font' : downloadFont,
-    'eot' : downloadFont,
-    'ttf' : downloadFont,
-    'woff' : downloadFont,
-    'svg' : downloadFont,
-    'ttc' : downloadFont,
+    'font' : skip,
+    'eot' : skip,
+    'ttf' : skip,
+    'woff' : skip,
+    'svg' : skip,
+    'ttc' : skip,
 
     // Deserializer
     'uuid' : downloadUuid,
+
+    // Binary
+    'binary' : downloadBinary,
 
     'default' : downloadText
 };
@@ -284,7 +216,7 @@ var Downloader = function (extMap) {
 
     this._subpackages = {};
 
-    this.extMap = JS.mixin(extMap, defaultMap);
+    this.extMap = js.mixin(extMap, defaultMap);
 };
 Downloader.ID = ID;
 Downloader.PackDownloader = PackDownloader;
@@ -295,7 +227,7 @@ Downloader.PackDownloader = PackDownloader;
  * @param {Object} extMap Custom supported types with corresponded handler
  */
 Downloader.prototype.addHandlers = function (extMap) {
-    JS.mixin(this.extMap, extMap);
+    js.mixin(this.extMap, extMap);
 };
 
 Downloader.prototype._handleLoadQueue = function () {

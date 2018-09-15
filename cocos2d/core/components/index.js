@@ -25,12 +25,10 @@
  ****************************************************************************/
 
 require('./CCComponent');
-require('./CCRendererInSG');
-require('./CCRendererUnderSG');
 require('./CCComponentEventHandler');
 require('./missing-script');
 
-module.exports = [
+var components = [
     require('./CCSprite'),
     require('./CCWidget'),
     require('./CCCanvas'),
@@ -46,14 +44,15 @@ module.exports = [
     require('./CCPageView'),
     require('./CCSlider'),
     require('./CCLayout'),
-    require('./CCEditBox'),
-    require('./CCVideoPlayer'),
-    require('./CCWebView'),
-    require('./CCSpriteDistortion'),
+    require('./editbox/CCEditBox'),
     require('./CCLabelOutline'),
     require('./CCRichText'),
     require('./CCToggleContainer'),
     require('./CCToggleGroup'),
     require('./CCToggle'),
     require('./CCBlockInputEvents'),
+    require('./CCMotionStreak'),
+    require('./WXSubContextView')
 ];
+
+module.exports = components;

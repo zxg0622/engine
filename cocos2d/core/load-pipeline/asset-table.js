@@ -25,6 +25,7 @@
  ****************************************************************************/
 
 var pushToMap = require('../utils/misc').pushToMap;
+var js = require('../platform/js');
 
 function Entry (uuid, type) {
     this.uuid = uuid;
@@ -39,7 +40,7 @@ function Entry (uuid, type) {
  */
 
 function AssetTable () {
-    this._pathToUuid = {};
+    this._pathToUuid = js.createMap(true);
 }
 
 function isMatchByWord (path, test) {
@@ -58,17 +59,17 @@ proto.getUuid = function (path, type) {
     if (item) {
         if (Array.isArray(item)) {
             if (type) {
-                for (let i = 0; i < item.length; i++) {
-                    let entry = item[i];
-                    if (cc.isChildClassOf(entry.type, type)) {
+                for (var i = 0; i < item.length; i++) {
+                    var entry = item[i];
+                    if (js.isChildClassOf(entry.type, type)) {
                         return entry.uuid;
                     }
                 }
                 // not found
-                if (CC_DEBUG && cc.isChildClassOf(type, cc.SpriteFrame)) {
+                if (CC_DEBUG && js.isChildClassOf(type, cc.SpriteFrame)) {
                     for (let i = 0; i < item.length; i++) {
                         let entry = item[i];
-                        if (cc.isChildClassOf(entry.type, cc.SpriteAtlas)) {
+                        if (js.isChildClassOf(entry.type, cc.SpriteAtlas)) {
                             // not support sprite frame in atlas
                             cc.errorID(4932, path);
                             break;
@@ -80,10 +81,10 @@ proto.getUuid = function (path, type) {
                 return item[0].uuid;
             }
         }
-        else if (!type || cc.isChildClassOf(item.type, type)) {
+        else if (!type || js.isChildClassOf(item.type, type)) {
             return item.uuid;
         }
-        else if (CC_DEBUG && cc.isChildClassOf(type, cc.SpriteFrame) && cc.isChildClassOf(item.type, cc.SpriteAtlas)) {
+        else if (CC_DEBUG && js.isChildClassOf(type, cc.SpriteFrame) && js.isChildClassOf(item.type, cc.SpriteAtlas)) {
             // not support sprite frame in atlas
             cc.errorID(4932, path);
         }
@@ -98,7 +99,7 @@ proto.getUuidArray = function (path, type, out_urls) {
     }
     var path2uuid = this._pathToUuid;
     var uuids = [];
-    var isChildClassOf = cc.isChildClassOf;
+    var isChildClassOf = js.isChildClassOf;
     var _foundAtlasUrl;
     for (var p in path2uuid) {
         if ((p.startsWith(path) && isMatchByWord(p, path)) || !path) {
@@ -130,7 +131,7 @@ proto.getUuidArray = function (path, type, out_urls) {
             }
         }
     }
-    if (CC_DEBUG && uuids.length === 0 && _foundAtlasUrl && cc.isChildClassOf(type, cc.SpriteFrame)) {
+    if (CC_DEBUG && uuids.length === 0 && _foundAtlasUrl && js.isChildClassOf(type, cc.SpriteFrame)) {
         // not support sprite frame in atlas
         cc.errorID(4932, _foundAtlasUrl);
     }
@@ -191,7 +192,7 @@ proto._getInfo_DEBUG = CC_DEBUG && function (uuid, out_info) {
 };
 
 proto.reset = function () {
-    this._pathToUuid = {};
+    this._pathToUuid = js.createMap(true);
 };
 
 

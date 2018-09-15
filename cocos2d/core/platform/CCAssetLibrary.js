@@ -31,6 +31,7 @@ var PackDownloader = require('../load-pipeline/pack-downloader');
 var AutoReleaseUtils = require('../load-pipeline/auto-release-utils');
 var decodeUuid = require('../utils/decode-uuid');
 var MD5Pipe = require('../load-pipeline/md5-pipe');
+var js = require('./js');
 
 /**
  * The asset library which managing loading/unloading assets in project.
@@ -43,7 +44,7 @@ var MD5Pipe = require('../load-pipeline/md5-pipe');
 
 var _libraryBase = '';
 var _rawAssetsBase = '';     // The base dir for raw assets in runtime
-var _uuidToRawAsset = {};
+var _uuidToRawAsset = js.createMap(true);
 
 function isScene (asset) {
     return asset && (asset.constructor === cc.SceneAsset || asset instanceof cc.Scene);
@@ -128,7 +129,7 @@ var AssetLibrary = {
                     Editor.Utils.UuidCache.cache(info.url, uuid);
                     var ctor = Editor.assets[info.type];
                     if (ctor) {
-                        var isRawAsset = !cc.isChildClassOf(ctor, Asset);
+                        var isRawAsset = !js.isChildClassOf(ctor, Asset);
                         callback(null, info.url, isRawAsset, ctor);
                     }
                     else {
@@ -147,7 +148,7 @@ var AssetLibrary = {
     _getAssetInfoInRuntime: function (uuid, result) {
         result = result || {url: null, raw: false};
         var info = _uuidToRawAsset[uuid];
-        if (info && !cc.isChildClassOf(info.type, cc.Asset)) {
+        if (info && !js.isChildClassOf(info.type, cc.Asset)) {
             // backward compatibility since 1.10
             result.url = _rawAssetsBase + info.url;
             result.raw = true;
@@ -284,8 +285,24 @@ var AssetLibrary = {
         _rawAssetsBase = options.rawAssetsBase;
 
         var md5AssetsMap = options.md5AssetsMap;
-        if (md5AssetsMap) {
-            var md5Pipe = new MD5Pipe(md5AssetsMap, _libraryBase, _rawAssetsBase);
+        if (md5AssetsMap && md5AssetsMap.import) {
+            // decode uuid
+            var i = 0, uuid = 0;
+            var md5ImportMap = js.createMap(true);
+            var md5Entries = md5AssetsMap.import;
+            for (i = 0; i < md5Entries.length; i += 2) {
+                uuid = decodeUuid(md5Entries[i]);
+                md5ImportMap[uuid] = md5Entries[i + 1];
+            }
+
+            var md5RawAssetsMap = js.createMap(true);
+            md5Entries = md5AssetsMap['raw-assets'];
+            for (i = 0; i < md5Entries.length; i += 2) {
+                uuid = decodeUuid(md5Entries[i]);
+                md5RawAssetsMap[uuid] = md5Entries[i + 1];
+            }
+
+            var md5Pipe = new MD5Pipe(md5ImportMap, md5RawAssetsMap, _libraryBase);
             cc.loader.insertPipeAfter(cc.loader.assetLoader, md5Pipe);
             cc.loader.md5Pipe = md5Pipe;
         }

@@ -24,16 +24,18 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var JS = require('../platform/js');
-var Pipeline = require('./pipeline');
-var Texture2D = require('../textures/CCTexture2D');
-var loadUuid = require('./uuid-loader');
+const js = require('../platform/js');
+const plistParser = require('../platform/CCSAXParser').plistParser;
+const Pipeline = require('./pipeline');
+const Texture2D = require('../assets/CCTexture2D');
+const loadUuid = require('./uuid-loader');
+const fontLoader = require('./font-loader');
 
-function loadNothing (item, callback) {
+function loadNothing () {
     return null;
 }
 
-function loadJSON (item, callback) {
+function loadJSON (item) {
     if (typeof item.content !== 'string') {
         return new Error('JSON Loader: Input item doesn\'t contain string content');
     }
@@ -47,8 +49,8 @@ function loadJSON (item, callback) {
     }
 }
 
-function loadImage (item, callback) {
-    var loadByDeserializedAsset = cc.Class.isInstanceOf(item._owner, cc.Asset);
+function loadImage (item) {
+    var loadByDeserializedAsset = (item._owner instanceof cc.Asset);
     if (loadByDeserializedAsset) {
         // already has cc.Asset
         return null;
@@ -57,22 +59,22 @@ function loadImage (item, callback) {
     var image = item.content;
     if (!CC_WECHATGAME && !CC_QQPLAY && !(image instanceof Image)) {
         return new Error('Image Loader: Input item doesn\'t contain Image content');
-    }
+    } 
 
     // load cc.Texture2D
     var rawUrl = item.rawUrl;
-    var tex = cc.textureCache.getTextureForKey(rawUrl) || new Texture2D();
+    var tex = item.texture || new Texture2D();
+    tex._uuid = item.uuid;
     tex.url = rawUrl;
     tex._setRawAsset(rawUrl, false);
     tex._nativeAsset = image;
-    cc.textureCache.cacheImage(rawUrl, tex);
     return tex;
 }
 
 // If audio is loaded by url directly, than this loader will wrap it into a new cc.AudioClip object.
 // If audio is loaded by deserialized AudioClip, than this loader will be skipped.
 function loadAudioAsAsset (item, callback) {
-    var loadByDeserializedAsset = cc.Class.isInstanceOf(item._owner, cc.Asset);
+    var loadByDeserializedAsset = (item._owner instanceof cc.Asset);
     if (loadByDeserializedAsset) {
         // already has cc.Asset
         return null;
@@ -84,11 +86,11 @@ function loadAudioAsAsset (item, callback) {
     return audioClip;
 }
 
-function loadPlist (item, callback) {
+function loadPlist (item) {
     if (typeof item.content !== 'string') {
         return new Error('Plist Loader: Input item doesn\'t contain string content');
     }
-    var result = cc.plistParser.parse(item.content);
+    var result = plistParser.parse(item.content);
     if (result) {
         return result;
     }
@@ -97,6 +99,15 @@ function loadPlist (item, callback) {
     }
 }
 
+function loadBinary (item) {
+    // Invoke custom handle
+    if (item.load) {
+        return item.load(item.content);
+    }
+    else {
+        return null;
+    }
+}
 
 var defaultMap = {
     // Images
@@ -116,18 +127,29 @@ var defaultMap = {
     'wav' : loadAudioAsAsset,
     'm4a' : loadAudioAsAsset,
 
+    // json
     'json' : loadJSON,
     'ExportJson' : loadJSON,
 
+    // plist
     'plist' : loadPlist,
 
-    // we embed fnt data inside the asset json file
-    // 'fnt' : loadFnt,
-
+    // asset
     'uuid' : loadUuid,
     'prefab' : loadUuid,
     'fire' : loadUuid,
     'scene' : loadUuid,
+
+    // binary
+    'binary' : loadBinary,
+
+    // Font
+    'font' : fontLoader.loadFont,
+    'eot' : fontLoader.loadFont,
+    'ttf' : fontLoader.loadFont,
+    'woff' : fontLoader.loadFont,
+    'svg' : fontLoader.loadFont,
+    'ttc' : fontLoader.loadFont,
 
     'default' : loadNothing
 };
@@ -162,7 +184,7 @@ var Loader = function (extMap) {
     this.async = true;
     this.pipeline = null;
 
-    this.extMap = JS.mixin(extMap, defaultMap);
+    this.extMap = js.mixin(extMap, defaultMap);
 };
 Loader.ID = ID;
 
@@ -172,7 +194,7 @@ Loader.ID = ID;
  * @param {Object} extMap Custom supported types with corresponded handler
  */
 Loader.prototype.addHandlers = function (extMap) {
-    this.extMap = JS.mixin(this.extMap, extMap);
+    this.extMap = js.mixin(this.extMap, extMap);
 };
 
 Loader.prototype.handle = function (item, callback) {

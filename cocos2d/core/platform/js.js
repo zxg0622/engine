@@ -77,13 +77,11 @@ var js = {
     },
 
     /**
-     * This method is deprecated, use cc.js.mixin please.<br>
      * Copy all properties not defined in obj from arguments[1...n]
      * @method addon
      * @param {Object} obj object to extend its properties
      * @param {Object} ...sourceObj source object to copy properties from
      * @return {Object} the result obj
-     * @deprecated
      */
     addon: function (obj) {
         'use strict';
@@ -171,16 +169,44 @@ var js = {
      * @return {Function}
      */
     getSuper (ctor) {
-        if (CC_JSB && ctor.hasOwnProperty('$super')) {
-            // babel runtime uses Object.setPrototypeOf to inherit static members,
-            // so $super will always inheritable even if it is non-enumerable.
-            return ctor.$super;
+        var proto = ctor.prototype; // binded function do not have prototype
+        var dunderProto = proto && Object.getPrototypeOf(proto);
+        return dunderProto && dunderProto.constructor;
+    },
+
+    /**
+     * Checks whether subclass is child of superclass or equals to superclass
+     *
+     * @method isChildClassOf
+     * @param {Function} subclass
+     * @param {Function} superclass
+     * @return {Boolean}
+     */
+    isChildClassOf (subclass, superclass) {
+        if (subclass && superclass) {
+            if (typeof subclass !== 'function') {
+                return false;
+            }
+            if (typeof superclass !== 'function') {
+                if (CC_DEV) {
+                    cc.warnID(3625, superclass);
+                }
+                return false;
+            }
+            if (subclass === superclass) {
+                return true;
+            }
+            for (;;) {
+                subclass = js.getSuper(subclass);
+                if (!subclass) {
+                    return false;
+                }
+                if (subclass === superclass) {
+                    return true;
+                }
+            }
         }
-        else {
-            var proto = ctor.prototype; // binded function do not have prototype
-            var dunderProto = proto && Object.getPrototypeOf(proto);
-            return dunderProto && dunderProto.constructor;
-        }
+        return false;
     },
 
     /**
@@ -243,7 +269,7 @@ var tmpGetSetDesc = {
  * @param {Object} obj
  * @param {String} prop
  * @param {Function} getter
- * @param {Function} setter
+ * @param {Function} [setter=null]
  * @param {Boolean} [enumerable=false]
  */
 js.getset = function (obj, prop, getter, setter, enumerable) {
@@ -825,7 +851,7 @@ js.array = {
  *Details.prototype.reset = function () {
  *    this.uuidList.length = 0;
  *};
- *Details.pool = new JS.Pool(function (obj) {
+ *Details.pool = new js.Pool(function (obj) {
  *    obj.reset();
  *}, 5);
  *Details.pool.get = function () {
@@ -871,7 +897,7 @@ js.array = {
  * constructor(size: number)
  */
 function Pool (cleanupFunc, size) {
-    if (typeof cleanupFunc === 'number') {
+    if (size === undefined) {
         size = cleanupFunc;
         cleanupFunc = null;
     }
