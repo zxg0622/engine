@@ -268,7 +268,7 @@ export class ModelComponent extends RenderableComponent {
         this._model.isDynamicBatching = this._enableDynamicBatching; // should pass this in before create PSO
         const meshCount = this._mesh ? this._mesh.subMeshCount : 0;
         for (let i = 0; i < meshCount; ++i) {
-            const material = this.getSharedMaterial(i);
+            const material = this.getMaterialInstance(i);
             const renderingMesh = this._mesh.renderingMesh;
             if (renderingMesh) {
                 const subMeshData = renderingMesh.getSubmesh(i);
@@ -280,7 +280,7 @@ export class ModelComponent extends RenderableComponent {
     }
 
     protected _onMaterialModified (idx: number, material: Material | null) {
-        if (this._model == null) {
+        if (this._model == null || !this._model.inited) {
             return;
         }
         this._onRebuildPSO(idx, material || this._getBuiltinMaterial());
@@ -298,7 +298,7 @@ export class ModelComponent extends RenderableComponent {
     }
 
     protected _onRebuildPSO (idx: number, material: Material) {
-        if (this._model) {
+        if (this._model && this._model.inited) {
             this._model.setSubModelMaterial(idx, material);
         }
     }
