@@ -1,9 +1,9 @@
-import { RenderableComponent } from '../3d';
-import { SpriteFrame } from '../assets';
+import { RenderableComponent } from '../3d/framework/renderable-component';
+import { SpriteFrame } from '../assets/sprite-frame';
 import { EffectAsset } from '../assets/effect-asset';
 import { TextureBase } from '../assets/texture-base';
 import { GFXBindingType, GFXTextureView } from '../gfx';
-import { samplerLib } from '../renderer';
+import { samplerLib } from '../renderer/core/sampler-lib';
 import { IDefineMap, PassOverrides } from '../renderer/core/pass';
 import { getBindingFromHandle, getBindingTypeFromHandle } from '../renderer/core/pass-utils';
 import { murmurhash2_32_gc } from './murmurhash2_gc';

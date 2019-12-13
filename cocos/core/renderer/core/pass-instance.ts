@@ -1,5 +1,5 @@
-import { samplerLib } from '..';
-import { builtinResMgr } from '../../3d';
+import { samplerLib } from './sampler-lib';
+import { builtinResMgr } from '../../3d/builtin/init';
 import { IPassInfo, IPassStates, IPropertyInfo } from '../../assets/effect-asset';
 import { TextureBase } from '../../assets/texture-base';
 import { GFXBindingType, GFXBuffer, GFXDevice, GFXDynamicState, GFXGetTypeSize, GFXPrimitiveMode, GFXRenderPass, GFXSampler, GFXShader, GFXTextureView, GFXType } from '../../gfx';
