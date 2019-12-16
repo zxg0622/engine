@@ -2,27 +2,26 @@
  * @category terrain
  */
 
-import { Material } from '../core/assets/material';
-import { IRenderingSubmesh } from '../core/assets/mesh';
 import { builtinResMgr } from '../core/3d/builtin';
 import { RenderableComponent } from '../core/3d/framework/renderable-component';
-import { Texture2D, EffectAsset } from '../core/assets';
+import { Texture2D } from '../core/assets';
 import { Filter, PixelFormat, WrapMode } from '../core/assets/asset-enum';
+import { Material } from '../core/assets/material';
+import { IRenderingSubmesh } from '../core/assets/mesh';
 import { Component } from '../core/components';
 import { ccclass, executeInEditMode, menu, property } from '../core/data/class-decorator';
-import { clamp, Rect, Size, Vec2, Vec3, Vec4 } from '../core/math';
+import { director } from '../core/director';
 import { GFXBuffer } from '../core/gfx/buffer';
 import { GFXAttributeName, GFXBufferUsageBit, GFXFormat, GFXMemoryUsageBit, GFXPrimitiveMode } from '../core/gfx/define';
 import { GFXDevice } from '../core/gfx/device';
 import { IGFXAttribute } from '../core/gfx/input-assembler';
-import { Model } from '../core/renderer/scene/model';
-import { PrivateNode } from '../core/scene-graph/private-node';
+import { clamp, Rect, Size, Vec2, Vec3, Vec4 } from '../core/math';
 import { IDefineMap } from '../core/renderer/core/pass';
+import { Model } from '../core/renderer/scene/model';
+import { Root } from '../core/root';
+import { PrivateNode } from '../core/scene-graph/private-node';
 import { HeightField } from './height-field';
 import { TerrainAsset } from './terrain-asset';
-import { director } from '../core/director';
-import { Root } from '../core/root';
-import { validateMethodWithProps } from '../core/data/utils/preprocess-class';
 
 export const TERRAIN_MAX_LEVELS = 4;
 export const TERRAIN_MAX_BLEND_LAYERS = 4;
@@ -151,7 +150,7 @@ export class TerrainRenderable extends RenderableComponent {
                 this._model.initSubModel(0, this._meshData, this._currentMaterial);
             }
 
-            this.setMaterial(this._currentMaterial, 0);
+            this.setMaterial(0, this._currentMaterial);
             this._currentMaterialLayers = nlayers;
             this._model.enabled = true;
         }
