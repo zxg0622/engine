@@ -1,3 +1,32 @@
+/*
+ Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+
+ http://www.cocos.com
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated engine source code (the "Software"), a limited,
+  worldwide, royalty-free, non-assignable, revocable and non-exclusive license
+ to use Cocos Creator solely to develop games on your target platforms. You shall
+  not use Cocos Creator software for developing other software or tools that's
+  used for developing games. You are not granted to publish, distribute,
+  sublicense, and/or sell copies of Cocos Creator.
+
+ The software or tools in this License Agreement are licensed, not sold.
+ Xiamen Yaji Software Co., Ltd. reserves all rights not expressly granted to you.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+*/
+
+/**
+ * @category material
+ */
+
 import { IProgramInfo, programLib } from '../../core/renderer/core/program-lib';
 import { IPassInfo, IPropertyInfo } from '../assets/effect-asset';
 import { GFXBuffer, GFXDevice, GFXDynamicState, GFXPipelineState, GFXPrimitiveMode, GFXRenderPass, GFXSampler, GFXShader, GFXTextureView, GFXType } from '../gfx';
@@ -69,7 +98,7 @@ export interface IPass {
 
     readonly parent: IPass | null;
     readonly psoHash: number;
-    readonly batchedBuffer: BatchedBuffer | null;
+
     // states
     readonly priority: RenderPriority;
     readonly primitive: GFXPrimitiveMode;
@@ -81,18 +110,20 @@ export interface IPass {
     readonly customizations: string[];
     readonly phase: number;
     // infos
+    readonly device: GFXDevice;
     readonly shaderInfo: IProgramInfo;
     readonly program: string;
     readonly properties: Record<string, IPropertyInfo>;
     readonly defines: IDefineMap;
     readonly idxInTech: number;
     // resources
-    readonly device: GFXDevice;
     readonly bindings: IGFXBinding[];
     readonly shader: GFXShader;
     readonly renderPass: GFXRenderPass;
     readonly dynamics: IPassDynamics;
+    readonly batchedBuffer: BatchedBuffer | null;
     readonly blocks: IBlock[];
+
     /**
      * @zh
      * 获取指定 UBO 成员，或其更具体分量的读写句柄。默认以成员自身的类型为目标读写类型（即读写时必须传入与成员类型相同的变量）。
