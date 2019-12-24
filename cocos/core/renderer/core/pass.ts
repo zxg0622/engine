@@ -79,12 +79,6 @@ interface IPassDynamics {
     };
 }
 
-interface IEffectInfo {
-    techIdx: number;
-    defines: IDefineMap[];
-    states: PassOverrides[];
-}
-
 interface IPSOHashInfo {
     program: string;
     defines: IDefineMap;

@@ -27,9 +27,8 @@
  * @category material
  */
 
-import { RenderableComponent } from '../../3d';
-import { Material } from '../../assets';
-import { _uploadProperty } from '../../utils/material-interface';
+import { RenderableComponent } from '../../3d/framework/renderable-component';
+import { Material } from '../../assets/material';
 import { PassInstance } from './pass-instance';
 import { IDefineMap } from './pass-utils';
 
