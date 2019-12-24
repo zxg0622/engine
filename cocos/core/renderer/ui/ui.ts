@@ -42,7 +42,6 @@ import { Model } from '../../renderer/scene/model';
 import { RenderScene } from '../../renderer/scene/render-scene';
 import { Root } from '../../root';
 import { Layers, Node } from '../../scene-graph';
-import { IMaterial } from '../../utils/material-interface';
 import { MeshBuffer } from './mesh-buffer';
 import { StencilManager } from './stencil-manager';
 import { UIBatchModel } from './ui-batch-model';
@@ -96,7 +95,7 @@ export class UI {
     private _modelInUse: CachedArray<UIBatchModel>;
     // batcher
     private _emptyMaterial = new Material();
-    private _currMaterial: IMaterial = this._emptyMaterial;
+    private _currMaterial: Material = this._emptyMaterial;
     private _currTexView: GFXTextureView | null = null;
     private _currCanvas: CanvasComponent | null = null;
     private _currMeshBuffer: MeshBuffer | null = null;
@@ -163,7 +162,7 @@ export class UI {
         return Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), 'renderScene')!.get!.bind(this);
     }
 
-    public _getUIMaterial (mat: IMaterial): UIMaterial {
+    public _getUIMaterial (mat: Material): UIMaterial {
         if (this._uiMaterials.has(mat.hash)) {
             return this._uiMaterials.get(mat.hash)!;
         } else {
@@ -194,7 +193,7 @@ export class UI {
         const screens = this._screens;
         for (let i = 0; i < screens.length; i++) {
             const element = screens[i];
-            if(element.camera){
+            if (element.camera){
                 element.camera.view.visibility = Layers.BitMask.UI_2D | (i + 1);
                 if (!this._canvasMaterials.has(element.camera.view.visibility)){
                     this._canvasMaterials.set(element.camera.view.visibility, new Map<number, number>());
@@ -273,7 +272,7 @@ export class UI {
         this._reset();
     }
 
-    public sortScreens(){
+    public sortScreens (){
         this._screens.sort(this._screenSort);
     }
 
@@ -361,7 +360,7 @@ export class UI {
      * @param model - 提交渲染的 model 数据。
      * @param mat - 提交渲染的材质。
      */
-    public commitModel (comp: UIComponent, model: Model | null, mat: IMaterial | null) {
+    public commitModel (comp: UIComponent, model: Model | null, mat: Material | null) {
         // if the last comp is spriteComp, previous comps should be batched.
         if (this._currMaterial !== this._emptyMaterial) {
             this.autoMergeBatches();
@@ -503,7 +502,7 @@ export class UI {
     }
 
     private _preprocess (c: Node) {
-        if(!c.uiTransformComp){
+        if (!c.uiTransformComp){
             return;
         }
 
@@ -568,7 +567,7 @@ export class UI {
         }
     }
 
-    private _screenSort(a: CanvasComponent, b: CanvasComponent) {
+    private _screenSort (a: CanvasComponent, b: CanvasComponent) {
         const delta = a.priority - b.priority;
         return delta === 0 ? a.node.getSiblingIndex() - b.node.getSiblingIndex() : delta;
     }
